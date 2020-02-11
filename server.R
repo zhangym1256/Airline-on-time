@@ -7,7 +7,7 @@ shinyServer(function(input, output,session) {
                      filter(df$ORIGIN == input$origin) %>% .$DEST)
     updateSelectInput(session, 'dest',choices = sort(unique(df[df$ORIGIN ==input$origin,'DEST'])),
                       selected=ifelse("LAX" %in% df[df$ORIGIN ==input$origin,'DEST'],"LAX",sort(unique(df[df$ORIGIN ==input$origin,'DEST']))[1]))
-                       
+    
   })
   
   observe({
@@ -17,7 +17,7 @@ shinyServer(function(input, output,session) {
     
   })
   
-
+  
   ##################################        Airport Tab       ####################################
   
   ### Infobox to show the average delay in mins for user selected origin airport
@@ -119,12 +119,11 @@ shinyServer(function(input, output,session) {
   
   
   df_delay = reactive({
-    df %>% rename(Carrier = OP_UNIQUE_CARRIER,`Day of Week` = DAY_OF_WEEK,`Carrier Delay`= CARRIER_DELAY) %>% 
+    df %>% rename(Carrier = Description,`Day of Week` = DAY_OF_WEEK,`Carrier Delay`= CARRIER_DELAY) %>% 
       filter(ORIGIN == input$origin, DEST == input$dest, 
              TIME_OF_DAY_DEP == input$departuretime) %>% 
       group_by(`Day of Week`,Carrier) %>% 
-      summarise(`Carrier Name`= first(Description),
-                Count =n(),
+      summarise(Count =n(),
                 Arrival = round(mean(ARR_DELAY)),
                 Departure =round(mean(DEP_DELAY)),
                 `Carrier Delay`= round(mean(`Carrier Delay`)))
@@ -141,7 +140,7 @@ shinyServer(function(input, output,session) {
   })
   
   ### Graph to show the average departure delay in mins by days and by carriers during selected departure time period between the two airports
-    output$depdelay = renderPlotly({
+  output$depdelay = renderPlotly({
     df_delay() %>% 
       ggplot(aes(x=`Day of Week`, y = Departure, fill = Carrier))+
       geom_col(position = 'dodge') + 
@@ -149,7 +148,7 @@ shinyServer(function(input, output,session) {
       ggtitle("Average Depature Delay by Carrier")+
       scale_x_discrete(limits=c(1:7),labels = Day)+
       theme_classic()
- }) 
+  }) 
   
   ### Graph to show the average arrival delay in mins by days and by carriers during selected departure time period between the two airports
   output$arrdelay = renderPlotly({
@@ -157,7 +156,7 @@ shinyServer(function(input, output,session) {
       ggplot(aes(x=`Day of Week`, y = Arrival, fill = Carrier))+
       geom_col(position = 'dodge') + 
       labs(x="Day of the Week", y = "Average Arrival Delay (mins)")+
-      ggtitle("Average Arrival Delay by Carrier")+
+      ggtitle("Average Arrival Delay by Carrier",)+
       scale_x_discrete(limits=c(1:7),labels = Day)+
       theme_classic()
   })
@@ -168,7 +167,7 @@ shinyServer(function(input, output,session) {
       ggplot(aes(x=`Day of Week`, y = `Carrier Delay`, fill = Carrier))+
       geom_col(position = 'dodge') + 
       labs(x="Day of the Week", y = "Delay Caused by Carrier(mins)")+
-      ggtitle("Average Arrival Delay Caused by Carrier")+
+      ggtitle("Average Delay Caused by Carrier")+
       scale_x_discrete(limits=c(1:7),labels = Day)+
       theme_classic()
   })
@@ -189,9 +188,9 @@ shinyServer(function(input, output,session) {
                   background = "skyblue",fontweight = "bold") 
   })
   
-
+  
 })
 
-  
-  
-  
+
+
+
