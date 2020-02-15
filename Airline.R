@@ -2,6 +2,7 @@ library(dplyr)
 library(tidyr)
 library(readr)
 
+
 Nov = read.csv("Nov_2019.csv", stringsAsFactors = F)
 Oct = read.csv("Oct_2019.csv",stringsAsFactors = F)
 Sep = read.csv("Sep_2019.csv",stringsAsFactors = F)
@@ -32,21 +33,23 @@ Airport$AIRPORT = as.character(Airport$AIRPORT)
 
 # Merge 2 data set to get longitude and latitude of U.S. airports
 df = left_join(df,Airport,by = c("ORIGIN" = "AIRPORT"))
-df <- df %>% rename(ORIGIN_LATITUDE=LATITUDE,ORIGIN_LONGITUDE=LONGITUDE)
+df <- df %>% rename(`ORIGIN LATITUDE`= LATITUDE,`ORIGIN LONGITUDE`=LONGITUDE)
 df =left_join(df,Airport,by = c("DEST" = "AIRPORT"))
-df <- df %>% rename(DEST_LATITUDE=LATITUDE,DEST_LONGITUDE=LONGITUDE)
+df <- df %>% rename(`DEST LATITUDE` = LATITUDE,`DEST LONGITUDE` = LONGITUDE)
 
 # Add Travel Time Period Column
-df <- df %>% mutate(TIME_OF_DAY_DEP = ifelse(CRS_DEP_TIME<600, "Early Morning", ifelse(CRS_DEP_TIME<1200, "Morning",ifelse(CRS_DEP_TIME<1800,"Afternoon","Evening"))),
-                    TIME_OF_DAY_ARR = ifelse(CRS_ARR_TIME<600, "Early Morning", ifelse(CRS_ARR_TIME<1200, "Morning",ifelse(CRS_ARR_TIME<1800,"Afternoon","Evening")))) 
+df <- df %>% mutate(TIME_OF_DAY_DEP = ifelse(CRS_DEP_TIME<600, "Early Morning", ifelse(CRS_DEP_TIME<1200, "Morning",ifelse(CRS_DEP_TIME<1800,"Afternoon","Evening"))))
 # Drop rows that have missing values in either DEP_DELAY OR ARR_DELAY columns
 df <- na.omit(df, cols=c("DEP_DELAY","ARR_DELAY"))
 
+# Rearranging Column Orders
+df = subset(df,select = c(1:3,5,18,6,7,9,10,12,23,13:15,17,19:22))
+
+
 View(df)
 str(df)
-class(df$Description)
 
-write.csv(df,file="Sep_to_Nov.csv")
+write.csv(df,file="Sep_to_Nov.csv",row.names=FALSE)
 
 
 ###########################################################################################

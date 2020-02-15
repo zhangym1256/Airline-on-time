@@ -18,15 +18,15 @@ Day = c("Mon","Tues","Weds","Thur","Fri","Sat","Sun")
 # Dataset for depature airport map  
 origin_airport = df %>% group_by(ORIGIN) %>% 
   summarise(DEP_DELAY = round(mean(DEP_DELAY)), 
-            LONG = first(ORIGIN_LONGITUDE),
-            LAT = first(ORIGIN_LATITUDE),
+            LONG = first(ORIGIN.LONGITUDE),
+            LAT = first(ORIGIN.LATITUDE),
             City = first(ORIGIN_CITY_NAME)) %>% 
   arrange(desc(DEP_DELAY))
 
 # Dataset for arrival airport map  
 dest_airport = df %>% group_by(DEST) %>% 
   summarise(ARR_DELAY =round(mean(ARR_DELAY)), 
-            LONG = first(DEST_LONGITUDE),
-            LAT = first(DEST_LATITUDE),
+            LONG = first(DEST.LONGITUDE),
+            LAT = first(DEST.LATITUDE),
             City = first(DEST_CITY_NAME)) %>% 
-  arrange(desc(ARR_DELAY))
+  arrange(desc(ARR_DELAY)) 

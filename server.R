@@ -18,6 +18,7 @@ shinyServer(function(input, output,session) {
   })
   
   
+  
   ##################################        Airport Tab       ####################################
   
   ### Infobox to show the average delay in mins for user selected origin airport
@@ -25,9 +26,9 @@ shinyServer(function(input, output,session) {
     df %>% filter(ORIGIN == input$origin, DEST == input$dest) %>% 
       group_by(ORIGIN) %>%
       summarise(average_delay = round(mean(DEP_DELAY)),
-                ORIGIN_LONGITUDE = first(ORIGIN_LONGITUDE),
-                ORIGIN_LATITUDE = first(ORIGIN_LATITUDE),
-                ORIGIN_CITY = first(ORIGIN_CITY_NAME))
+                ORIGIN.LONGITUDE = first(ORIGIN.LONGITUDE),
+                ORIGIN.LATITUDE = first(ORIGIN.LATITUDE),
+                `ORIGIN CITY` = first(ORIGIN_CITY_NAME))
   })
   
   output$depbox = renderInfoBox({
@@ -39,8 +40,8 @@ shinyServer(function(input, output,session) {
     df %>% filter(ORIGIN == input$origin, DEST == input$dest) %>% 
       group_by(DEST) %>%
       summarise(average_delay = round(mean(ARR_DELAY)),
-                DEST_LONGITUDE = first(DEST_LONGITUDE),
-                DEST_LATITUDE = first(DEST_LATITUDE),
+                DEST.LONGITUDE = first(DEST.LONGITUDE),
+                DEST.LATITUDE = first(DEST.LATITUDE),
                 DEST_CITY = first(DEST_CITY_NAME))
   })
   
@@ -59,9 +60,10 @@ shinyServer(function(input, output,session) {
                        radius = ifelse(origin_airport$DEP_DELAY>150,8,ifelse(origin_airport$DEP_DELAY > 120,6,4)),
                        color = ~pal(DEP_DELAY),
                        label = paste(paste(origin_airport$ORIGIN,"in",origin_airport$City),paste("Average Delay:",origin_airport$DEP_DELAY,"mins"),sep=" | "),
-                       stroke = FALSE, fillOpacity = 0.5) %>% 
-      addMarkers(lng = df_dep()$ORIGIN_LONGITUDE,lat = df_dep()$ORIGIN_LATITUDE,
-                 label = paste(paste(df_dep()$ORIGIN,"in",df_dep()$ORIGIN_CITY),paste("Average Delay:",df_dep()$average_delay,"mins"),sep=" | "))
+                       stroke = TRUE, fillOpacity = 0.8) %>% 
+      addMarkers(lng = df_dep()$ORIGIN.LONGITUDE,lat = df_dep()$ORIGIN.LATITUDE,
+                 label = paste(paste(df_dep()$ORIGIN,"in",df_dep()$ORIGIN_CITY),paste("Average Delay:",df_dep()$average_delay,"mins"),sep=" | ")) %>% 
+      setView(-99.27416667, 38.84611111, zoom = 4)
     
   })
   
@@ -76,9 +78,10 @@ shinyServer(function(input, output,session) {
                        radius = ifelse(dest_airport$ARR_DELAY>150,8,ifelse(dest_airport$ARR_DELAY > 120,6,4)),
                        color = ~pal2(ARR_DELAY),
                        label = paste(paste(dest_airport$DEST,"in",dest_airport$City),paste("Average Delay:",dest_airport$ARR_DELAY,"mins"),sep=" | "),
-                       stroke = FALSE, fillOpacity = 0.5) %>% 
-      addAwesomeMarkers(lng = df_arr()$DEST_LONGITUDE,lat = df_arr()$DEST_LATITUDE,
-                        label = paste(paste(df_arr()$DEST,"in",df_arr()$DEST_CITY),paste("Average Delay:",df_arr()$average_delay,"mins"),sep=" | "))
+                       stroke = TRUE, fillOpacity = 0.8) %>% 
+      addAwesomeMarkers(lng = df_arr()$DEST.LONGITUDE,lat = df_arr()$DEST.LATITUDE,
+                        label = paste(paste(df_arr()$DEST,"in",df_arr()$DEST_CITY),paste("Average Delay:",df_arr()$average_delay,"mins"),sep=" | "))%>% 
+      setView(-99.27416667, 38.84611111, zoom = 4)
   }) 
   
   
@@ -119,10 +122,10 @@ shinyServer(function(input, output,session) {
   
   
   df_delay = reactive({
-    df %>% rename(Carrier = Description,`Day of Week` = DAY_OF_WEEK,`Carrier Delay`= CARRIER_DELAY) %>% 
+    df %>% rename(Carrier = Description,`Day of the Week` = DAY_OF_WEEK,`Carrier Delay`= CARRIER_DELAY) %>% 
       filter(ORIGIN == input$origin, DEST == input$dest, 
              TIME_OF_DAY_DEP == input$departuretime) %>% 
-      group_by(`Day of Week`,Carrier) %>% 
+      group_by(`Day of the Week`,Carrier) %>% 
       summarise(Count =n(),
                 Arrival = round(mean(ARR_DELAY)),
                 Departure =round(mean(DEP_DELAY)),
@@ -132,7 +135,7 @@ shinyServer(function(input, output,session) {
   ### Graph to show the total counts of flights by days between the two selected airports
   output$count = renderPlotly({
     df_delay() %>% 
-      ggplot(aes(x=`Day of Week`, y = Count,fill = Carrier))+geom_col(position = 'dodge')+
+      ggplot(aes(x=`Day of the Week`, y = Count,fill = Carrier))+geom_col(position = 'dodge')+
       labs(x="Day of the Week", y = "Counts of Flights")+
       ggtitle("Counts of Flights by Carrier")+
       scale_x_discrete(limits=c(1:7),labels = Day)+
@@ -142,7 +145,7 @@ shinyServer(function(input, output,session) {
   ### Graph to show the average departure delay in mins by days and by carriers during selected departure time period between the two airports
   output$depdelay = renderPlotly({
     df_delay() %>% 
-      ggplot(aes(x=`Day of Week`, y = Departure, fill = Carrier))+
+      ggplot(aes(x=`Day of the Week`, y = Departure, fill = Carrier))+
       geom_col(position = 'dodge') + 
       labs(x="Day of the Week", y = "Average Depature Delay (mins)")+
       ggtitle("Average Depature Delay by Carrier")+
@@ -153,7 +156,7 @@ shinyServer(function(input, output,session) {
   ### Graph to show the average arrival delay in mins by days and by carriers during selected departure time period between the two airports
   output$arrdelay = renderPlotly({
     df_delay() %>% 
-      ggplot(aes(x=`Day of Week`, y = Arrival, fill = Carrier))+
+      ggplot(aes(x=`Day of the Week`, y = Arrival, fill = Carrier))+
       geom_col(position = 'dodge') + 
       labs(x="Day of the Week", y = "Average Arrival Delay (mins)")+
       ggtitle("Average Arrival Delay by Carrier",)+
@@ -164,7 +167,7 @@ shinyServer(function(input, output,session) {
   ### Graph to show the average delay in mins that is caused by carrier 
   output$carrier = renderPlotly({
     df_delay() %>% 
-      ggplot(aes(x=`Day of Week`, y = `Carrier Delay`, fill = Carrier))+
+      ggplot(aes(x=`Day of the Week`, y = `Carrier Delay`, fill = Carrier))+
       geom_col(position = 'dodge') + 
       labs(x="Day of the Week", y = "Delay Caused by Carrier(mins)")+
       ggtitle("Average Delay Caused by Carrier")+
